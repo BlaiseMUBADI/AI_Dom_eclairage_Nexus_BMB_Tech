@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion Système Eclairage</title>
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+  <style>
+    .login-card { max-width: 350px; margin: 80px auto; background: #fff; border-radius: 10px; box-shadow: 0 0 16px #d3e0ea; padding: 32px 36px 24px 36px; }
+    .login-logo { font-size: 2.5rem; text-align: center; margin-bottom: 10px; }
+    .login-title { font-size: 1.3rem; font-weight: 600; text-align: center; margin-bottom: 18px; color: #007bff; }
+    .login-footer { text-align: center; color: #bbb; font-size: 0.95rem; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo">💡</div>
+    <div class="login-title">Connexion à ma maison</div>
+    <form id="authForm" autocomplete="off" onsubmit="return false;">
+      <div class="mb-3 text-start">
+        <label for="user" class="form-label">Utilisateur</label>
+        <input type="text" class="form-control" id="user" required autofocus>
+      </div>
+      <div class="mb-3 text-start">
+        <label for="pass" class="form-label">Mot de passe</label>
+        <input type="password" class="form-control" id="pass" required>
+      </div>
+      <div class="mb-3 text-start">
+        <label for="batt" class="form-label">Capacité batterie (Ah)</label>
+        <input type="number" class="form-control" id="batt" min="1" required oninput="updateKwh()">
+        <div style="font-size:0.95em;color:#007bff;margin-top:4px;">
+          Capacité en kWh : <span id="batt_kwh">--</span>
+        </div>
+      </div>
+      <button class="btn btn-login" id="loginBtn">Se connecter</button>
+      <div id="authError" class="text-danger small"></div>
+    </form>
+    <div class="login-footer">
+      &copy; 2025 Système Solar IoT BMB.Soft
+    </div>
+  </div>
+  <script>
+    function updateKwh() {
+      const ah = parseFloat(document.getElementById('batt').value);
+      const Vnom = 12;
+      if (ah > 0) {
+        document.getElementById('batt_kwh').textContent = ((ah * Vnom) / 1000).toFixed(2);
+      } else {
+        document.getElementById('batt_kwh').textContent = "--";
+      }
+    }
+    const USERNAME = "bmb";
+    const PASSWORD = "bmb";
+    document.getElementById('loginBtn').onclick = function() {
+      const u = document.getElementById('user').value.trim();
+      const p = document.getElementById('pass').value;
+      const b = document.getElementById('batt').value;
+      if (u === USERNAME && p === PASSWORD && b > 0) {
+        localStorage.setItem("ecg_auth", "ok");
+        localStorage.setItem("batt_ah", b);
+        window.location.href = "index.html";
+      } else {
+        document.getElementById('authError').textContent = "Identifiants ou capacité incorrects";
+        document.getElementById('authError').style.display = "block";
+      }
+    };
+  </script>
+</body>
+</html>

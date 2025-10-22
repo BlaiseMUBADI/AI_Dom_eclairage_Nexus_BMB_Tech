@@ -1,0 +1,58 @@
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  padding: 2.5rem 2rem 2rem 2rem;
+  width: 100%;
+  max-width: 370px;
+  text-align: center;
+}
+.login-logo {
+  font-size: 3rem;
+  color: #0ea5e9;
+  margin-bottom: 0.5rem;
+}
+.login-title {
+  font-weight: 600;
+  color: #0ea5e9;
+  margin-bottom: 2rem;
+  letter-spacing: 1px;
+}
+.form-label {
+  font-weight: 500;
+  color: #0ea5e9;
+}
+.form-control:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 0.2rem rgba(14,165,233,.15);
+}
+.btn-login {
+  background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  width: 100%;
+  margin-top: 1rem;
+  transition: background 0.2s;
+}
+.btn-login:hover {
+  background: linear-gradient(90deg, #38bdf8 0%, #0ea5e9 100%);
+}
+#authError {
+  display: none;
+  margin-top: 1rem;
+}
+.login-footer {
+  margin-top: 2rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Tableau de bord - Maison connectée</title>
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+  <script>
+    // Protection d'accès
+    if (localStorage.getItem("ecg_auth") !== "ok") {
+      window.location.href = "login.html";
+    }
+  </script>
+  <style>
+    body { background: #f7f9fb; font-family: 'Montserrat', Arial, sans-serif; }
+    .dashboard-card { max-width: 540px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 0 16px #d3e0ea; padding: 32px 36px 24px 36px; }
+    .dashboard-title { font-size: 2rem; font-weight: 600; color: #007bff; text-align: center; margin-bottom: 24px; }
+    .lampe-group { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; margin-bottom: 30px; }
+    .lampe-block { flex: 0 0 48%; background: #f1f5fa; border-radius: 8px; padding: 18px 0 12px 0; text-align: center; box-shadow: 0 2px 8px #e3eaf1; transition: background 0.3s; }
+    .lampe-block span { display: block; font-weight: 600; margin-bottom: 10px; color: #333; }
+    .btn-lampe { margin: 0 5px; min-width: 60px; font-weight: 600; }
+    .btn-on { background: #28a745; color: #fff; }
+    .btn-off { background: #dc3545; color: #fff; }
+    .mesures { background: #e9ecef; border-radius: 8px; padding: 18px 0; text-align: center; margin-bottom: 18px; font-size: 1.1rem; }
+    .mesures span { font-weight: bold; color: #007bff; }
+    .logout-link { display: block; text-align: right; margin-bottom: 10px; color: #888; text-decoration: underline; cursor: pointer; font-size: 0.95rem; }
+    @media (max-width: 600px) { .dashboard-card { padding: 18px 4vw; } .lampe-group { flex-direction: column; gap: 10px; } .lampe-block { flex: 1 1 100%; } }
+  </style>
+</head>
+<body>
+  <div class="dashboard-card">
+    <span class="logout-link" onclick="logout()">Déconnexion</span>
+    <div style="text-align:right;margin-bottom:10px;">
+      <label for="batt_ah" style="font-size:0.98rem;">Capacité batterie (Ah):</label>
+      <input type="number" id="batt_ah" min="1" style="width:80px;" value="10" oninput="updateKwhIndex()">
+      <span style="font-size:0.98rem;">| <b>kWh :</b> <span id="batt_kwh_index">--</span></span>
+      <button class="btn btn-sm btn-primary" onclick="updateBattAh()">OK</button>
+    </div>
+    <div style="text-align:right;margin-bottom:10px;">
+      <span style="font-size:0.98rem;">Tension nominale mesurée : <b><span id="tension_nominale">--</span> V</b></span>
+    </div>
+    <div class="dashboard-title">Contrôle des lampes</div>
+    <div class="lampe-group">
+      <div class="lampe-block" id="lampe1">
+        <span>Lampe 1</span>
+        <button class="btn btn-lampe btn-on" onclick="setLampe(1, 'on')">ON</button>
+        <button class="btn btn-lampe btn-off" onclick="setLampe(1, 'off')">OFF</button>
+      </div>
+      <div class="lampe-block" id="lampe2">
+        <span>Lampe 2</span>
+        <button class="btn btn-lampe btn-on" onclick="setLampe(2, 'on')">ON</button>
+        <button class="btn btn-lampe btn-off" onclick="setLampe(2, 'off')">OFF</button>
+      </div>
+      <div class="lampe-block" id="lampe3">
+        <span>Lampe 3</span>
+        <button class="btn btn-lampe btn-on" onclick="setLampe(3, 'on')">ON</button>
+        <button class="btn btn-lampe btn-off" onclick="setLampe(3, 'off')">OFF</button>
+      </div>
+      <div class="lampe-block" id="lampe4">
+        <span>Lampe 4</span>
+        <button class="btn btn-lampe btn-on" onclick="setLampe(4, 'on')">ON</button>
+        <button class="btn btn-lampe btn-off" onclick="setLampe(4, 'off')">OFF</button>
+      </div>
+    </div>
+    <div class="dashboard-title" style="font-size:1.3rem;margin-bottom:12px;">Mesures en temps réel</div>
+    <div class="mesures">
+      Tension : <span id="tension">--</span> V<br>
+      Courant : <span id="courant">--</span> A<br>
+      Puissance : <span id="puissance">--</span> W<br>
+      Consommation cumulée : <span id="conso_kwh">--</span> kWh<br>
+      Énergie restante : <span id="restant_wh">--</span> Wh (<span id="restant_pct">--</span> %)<br>
+      <b>Autonomie estimée : <span id="autonomie">--</span> h</b>
+    </div>
+    <div class="login-footer" style="text-align:center;color:#bbb;font-size:0.95rem;">
+      &copy; 2025 Système Solar IoT BMB.Soft
+    </div>
+  </div>
+  <script>
+    function setLampe(id, etat) {
+      fetch(`/lampe?id=${id}&etat=${etat}`).then(() => majEtatsLampes());
+    }
+    function majMesures() {
+      const batt_ah = localStorage.getItem("batt_ah") || 10;
+      fetch('/mesures?batt_ah=' + batt_ah)
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('tension').textContent = data.tension;
+          document.getElementById('courant').textContent = data.courant;
+          document.getElementById('puissance').textContent = data.puissance;
+          document.getElementById('autonomie').textContent = data.autonomie;
+          document.getElementById('conso_kwh').textContent = data.conso_kwh;
+          document.getElementById('tension_nominale').textContent = data.tension;
+          document.getElementById('restant_wh').textContent = data.restant_wh;
+          document.getElementById('restant_pct').textContent = data.restant_pct;
+          updateKwhIndex();
+        });
+    }
+    function majEtatsLampes() {
+      fetch('/etat_lampes')
+        .then(r => r.json())
+        .then(etats => {
+          for (let i = 1; i <= 4; i++) {
+            const block = document.getElementById('lampe' + i);
+            if (etats['l'+i] == 1) {
+              block.style.background = "#d4edda";
+            } else {
+              block.style.background = "#f8d7da";
+            }
+          }
+        });
+    }
+    setInterval(majMesures, 1000);
+    setInterval(majEtatsLampes, 1000);
+    majMesures();
+    majEtatsLampes();
+
+    function logout() {
+      localStorage.removeItem("ecg_auth");
+      window.location.href = "login.html";
+    }
+    function updateKwhIndex() {
+      const ah = parseFloat(document.getElementById('batt_ah').value);
+      const tension = parseFloat(document.getElementById('tension_nominale').textContent) || 12;
+      if (ah > 0 && tension > 0) {
+        document.getElementById('batt_kwh_index').textContent = ((ah * tension) / 1000).toFixed(2);
+      } else {
+        document.getElementById('batt_kwh_index').textContent = "--";
+      }
+    }
+    function updateBattAh() {
+      const val = document.getElementById('batt_ah').value;
+      if (val > 0) {
+        localStorage.setItem("batt_ah", val);
+        updateKwhIndex();
+      }
+    }
+    window.onload = function() {
+      let batt = localStorage.getItem("batt_ah");
+      if (!batt) batt = 10;
+      document.getElementById('batt_ah').value = batt;
+      updateKwhIndex();
+    };
+  </script>
+</body>
+</html>
