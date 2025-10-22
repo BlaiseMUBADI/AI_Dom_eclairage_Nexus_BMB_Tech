@@ -24,6 +24,34 @@
     .btn-off { background: #dc3545; color: #fff; }
     .mesures { background: #e9ecef; border-radius: 8px; padding: 18px 0; text-align: center; margin-bottom: 18px; font-size: 1.1rem; }
     .mesures span { font-weight: bold; color: #007bff; }
+    
+    /* Styles pour le slider de luminosité */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: #ddd;
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #007bff;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      background: #007bff;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+    
     .logout-link { display: block; text-align: right; margin-bottom: 10px; color: #888; text-decoration: underline; cursor: pointer; font-size: 0.95rem; }
     @media (max-width: 600px) { .dashboard-card { padding: 18px 4vw; } .lampe-group { flex-direction: column; gap: 10px; } .lampe-block { flex: 1 1 100%; } }
   </style>
@@ -43,24 +71,33 @@
     <div class="dashboard-title">Contrôle des lampes</div>
     <div class="lampe-group">
       <div class="lampe-block" id="lampe1">
-        <span>Lampe 1</span>
+        <span>Salon (+ Salon2)</span>
         <button class="btn btn-lampe btn-on" onclick="setLampe(1, 'on')">ON</button>
         <button class="btn btn-lampe btn-off" onclick="setLampe(1, 'off')">OFF</button>
       </div>
       <div class="lampe-block" id="lampe2">
-        <span>Lampe 2</span>
+        <span>Extérieur</span>
         <button class="btn btn-lampe btn-on" onclick="setLampe(2, 'on')">ON</button>
         <button class="btn btn-lampe btn-off" onclick="setLampe(2, 'off')">OFF</button>
       </div>
       <div class="lampe-block" id="lampe3">
-        <span>Lampe 3</span>
+        <span>Chambre 1 (Variateur)</span>
         <button class="btn btn-lampe btn-on" onclick="setLampe(3, 'on')">ON</button>
         <button class="btn btn-lampe btn-off" onclick="setLampe(3, 'off')">OFF</button>
+        <div style="margin-top: 10px;">
+          <label style="font-size: 0.9rem;">Luminosité: <span id="luminosite_val">50</span>%</label><br>
+          <input type="range" id="luminosite_slider" min="0" max="100" value="50" 
+                 style="width: 80%; margin-top: 5px;" 
+                 oninput="updateLuminosite()" onchange="setLuminosite()">
+        </div>
       </div>
       <div class="lampe-block" id="lampe4">
-        <span>Lampe 4</span>
+        <span>Salon2 (Individuel)</span>
         <button class="btn btn-lampe btn-on" onclick="setLampe(4, 'on')">ON</button>
         <button class="btn btn-lampe btn-off" onclick="setLampe(4, 'off')">OFF</button>
+        <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+          Contrôle web uniquement
+        </div>
       </div>
     </div>
     <div class="dashboard-title" style="font-size:1.3rem;margin-bottom:12px;">Mesures en temps réel</div>
@@ -70,16 +107,45 @@
       Puissance : <span id="puissance">--</span> W<br>
       Consommation cumulée : <span id="conso_kwh">--</span> kWh<br>
       Énergie restante : <span id="restant_wh">--</span> Wh (<span id="restant_pct">--</span> %)<br>
-      <b>Autonomie estimée : <span id="autonomie">--</span> h</b>
+      <b>Autonomie estimée : <span id="autonomie">--</span> h</b>
     </div>
+    
+    <div class="dashboard-title" style="font-size:1.2rem;margin-bottom:12px;margin-top:20px;">🗣️ Contrôle vocal Google Home</div>
+    <div style="background: #e3f2fd; border-radius: 8px; padding: 15px; margin-bottom: 18px; font-size: 0.9rem; text-align: left;">
+      <div style="margin-bottom: 8px;"><strong>Commandes disponibles :</strong></div>
+      <div style="margin-left: 10px; line-height: 1.6;">
+        • "Ok Google, allume le salon" <span style="color: #666;">(Salon + Salon2)</span><br>
+        • "Ok Google, éteins le salon"<br>
+        • "Ok Google, allume l'extérieur"<br>
+        • "Ok Google, mets la chambre 1 à 30%"<br>
+        • "Ok Google, augmente la chambre 1"<br>
+        • "Ok Google, baisse la chambre 1"
+      </div>
+    </div>
+    
     <div class="login-footer" style="text-align:center;color:#bbb;font-size:0.95rem;">
-      &copy; 2025 Système Solar IoT BMB.Soft
+      &copy; 2025 Système Dom-IoT Nexus BMB Tech
     </div>
   </div>
   <script>
     function setLampe(id, etat) {
       fetch(`/lampe?id=${id}&etat=${etat}`).then(() => majEtatsLampes());
     }
+    
+    // Nouvelles fonctions pour la luminosité
+    function updateLuminosite() {
+      const val = document.getElementById('luminosite_slider').value;
+      document.getElementById('luminosite_val').textContent = val;
+    }
+    
+    function setLuminosite() {
+      const niveau = document.getElementById('luminosite_slider').value;
+      fetch(`/luminosite?id=3&niveau=${niveau}`)
+        .then(() => {
+          console.log(`Luminosité chambre 1 réglée à ${niveau}%`);
+        });
+    }
+    
     function majMesures() {
       const batt_ah = localStorage.getItem("batt_ah") || 10;
       fetch('/mesures?batt_ah=' + batt_ah)
